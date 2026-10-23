@@ -53,7 +53,7 @@ export default function AppWindow({ window: win }) {
   };
 
   const handleMinimize = () => {
-    const dockIconEl = document.querySelector(`[title="${win.appId}"]`);
+    const dockIconEl = document.querySelector(`[data-app-id="${win.appId.toLowerCase()}"], [title="${win.appId}"]`);
     const rect = dockIconEl ? dockIconEl.getBoundingClientRect() : null;
     const dockPos = rect ? {
       x: rect.left + rect.width / 2,
@@ -73,6 +73,7 @@ export default function AppWindow({ window: win }) {
     minimize(win.id);
     genieController.play({
       dir: "minimize",
+      appId: win.appId.toLowerCase(),
       dock: dockPos,
       win: winRect,
       title: win.appId,
@@ -122,7 +123,7 @@ export default function AppWindow({ window: win }) {
   };
 
   return (
-    <div style={minimizedStyle}>
+    <div style={minimizedStyle} className={`app-window-${win.appId.toLowerCase()}`}>
       <Rnd
         ref={rndRef}
         size={{ width: windowState.width, height: windowState.height }}

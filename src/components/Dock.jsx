@@ -163,7 +163,7 @@ export default function Dock() {
     );
 
     // Get clicked icon coordinates for Genie effect
-    const dockIconEl = document.querySelector(`[title="${app.name}"]`);
+    const dockIconEl = document.querySelector(`[data-app-id="${app.id}"], [title="${app.name}"]`);
     const rect = dockIconEl ? dockIconEl.getBoundingClientRect() : null;
     const dockPos = rect ? {
       x: rect.left + rect.width / 2,
@@ -177,18 +177,27 @@ export default function Dock() {
     const isCalc = winAppId === "Calculator";
     const winW = isCalc ? 320 : Math.min(840, window.innerWidth * 0.65);
     const winH = isCalc ? 440 : Math.min(580, window.innerHeight * 0.72);
-    const winRect = {
+    let winRect = {
       x: Math.max(20, (window.innerWidth - winW) / 2),
       y: Math.max(40, (window.innerHeight - winH) / 2 - 20),
       width: winW,
       height: winH,
     };
 
+    const existingEl = document.querySelector(`.app-window-${winAppId.toLowerCase()}`);
+    if (existingEl) {
+      const b = existingEl.getBoundingClientRect();
+      if (b.width > 50 && b.height > 50) {
+        winRect = { x: b.left, y: b.top, width: b.width, height: b.height };
+      }
+    }
+
     if (existingWindow) {
       if (existingWindow.minimized) {
         // Trigger Genie Open from dock into window
         genieController.play({
           dir: "open",
+          appId: app.id,
           dock: dockPos,
           win: winRect,
           title: app.name,
@@ -206,6 +215,7 @@ export default function Dock() {
         // Trigger Genie Open from dock into window
         genieController.play({
           dir: "open",
+          appId: app.id,
           dock: dockPos,
           win: winRect,
           title: app.name,
