@@ -93,7 +93,7 @@ const ControlCenterIcon = () => (
 export default function TopBar({ appTitle = "Finder", setStage }) {
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const [ccOpen, setCcOpen] = useState(false);
-  const [username, setUsername] = useState(() => localStorage.getItem("lock_username") || "Likhith SP");
+  const [username, setUsername] = useState(() => localStorage.getItem("lock_username") || "Khaled");
 
   function handleAction(action) {
     if (action === "lock") setStage("lock");

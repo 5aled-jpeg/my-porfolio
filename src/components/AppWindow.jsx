@@ -18,6 +18,7 @@ export default function AppWindow({ window: win }) {
   const screenWidth = globalThis.innerWidth || 1200;
   const screenHeight = globalThis.innerHeight || 800;
   const isLaunchpad = win.appId === "Launchpad";
+  const isGenie = win.appId === "Genie";
   const isMessages = win.appId === "Messages";
   const isFinder = win.appId === "Finder";
   const isMail = win.appId === "Mail";
@@ -26,8 +27,8 @@ export default function AppWindow({ window: win }) {
   const isPhone = win.appId === "Phone";
   const isContacts = win.appId === "Contacts";
   const isReminders = win.appId === "Reminders";
-  const initialWidth = (isMail || isMaps || isFaceTime) ? screenWidth * 0.65 : (isMessages || isFinder || isPhone || isContacts || isReminders) ? screenWidth * 0.55 : isLaunchpad ? screenWidth * 0.45 : screenWidth * 0.7;
-  const initialHeight = (isMessages || isFinder || isMail || isMaps || isFaceTime || isPhone || isContacts || isReminders) ? screenHeight * 0.72 : isLaunchpad ? screenHeight * 0.65 : screenHeight * 0.76;
+  const initialWidth = isGenie ? Math.min(920, screenWidth * 0.78) : (isMail || isMaps || isFaceTime) ? screenWidth * 0.65 : (isMessages || isFinder || isPhone || isContacts || isReminders) ? screenWidth * 0.55 : isLaunchpad ? screenWidth * 0.45 : screenWidth * 0.7;
+  const initialHeight = isGenie ? Math.min(650, screenHeight * 0.8) : (isMessages || isFinder || isMail || isMaps || isFaceTime || isPhone || isContacts || isReminders) ? screenHeight * 0.72 : isLaunchpad ? screenHeight * 0.65 : screenHeight * 0.76;
   const initialX = Math.max(50, (screenWidth - initialWidth) / 2);
   const initialY = Math.max(40, (screenHeight - initialHeight) / 2 - 20);
 
@@ -149,26 +150,19 @@ export default function AppWindow({ window: win }) {
           {isVisible && (
             <motion.div
               key={win.id}
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ 
                 opacity: 1, 
                 scale: 1, 
                 y: 0,
-                boxShadow: isFaceTime
-                  ? isDragging 
-                    ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
-                    : '0 10px 40px -10px rgba(0, 0, 0, 0.4)'
-                  : isDragging 
-                    ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)' 
-                    : '0 10px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
               }}
               exit={{
                 opacity: 0,
-                scale: 0.9,
-                y: 30,
-                transition: { duration: 0.2, ease: "easeInOut" },
+                scale: 0.95,
+                y: 12,
+                transition: { duration: 0.15, ease: "easeOut" },
               }}
-              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
               className={`flex flex-col overflow-hidden ${
                 win.maximized ? "rounded-none" : "rounded-xl"
               } ${

@@ -364,7 +364,9 @@ export default function Finder({ initialPath = "/icloud", windowId, maximized, i
   const scrubberRef = useRef(null);
   const finderRef = useRef(null);
 
-  // Sync to local storage
+  // Sync to local storage with initial mount guard
+  const isInitialMountRef = useRef(true);
+
   useEffect(() => {
     localStorage.setItem("os_icloud_files", JSON.stringify(icloudFiles));
   }, [icloudFiles]);
@@ -382,11 +384,16 @@ export default function Finder({ initialPath = "/icloud", windowId, maximized, i
   }, [likhithFiles]);
 
   useEffect(() => {
+    if (isInitialMountRef.current) return;
     localStorage.setItem("os_desktop_files", JSON.stringify(desktopFiles));
     window.dispatchEvent(new CustomEvent("os_desktop_sync"));
   }, [desktopFiles]);
 
   useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
     localStorage.setItem("os_desktop_folders", JSON.stringify(desktopFolders));
     window.dispatchEvent(new CustomEvent("os_desktop_sync"));
   }, [desktopFolders]);
@@ -533,7 +540,7 @@ export default function Finder({ initialPath = "/icloud", windowId, maximized, i
     if (path === "/recents") return "Recents";
     if (path === "/shared") return "Shared";
     if (path === "/applications") return "Applications";
-    if (path === "/likhith-sp") return "Likhith SP";
+    if (path === "/likhith-sp") return localStorage.getItem("lock_username") || "Khaled";
     if (path === "/mac-hd") return "macOS 27";
 
     // Handle deep paths
@@ -1239,7 +1246,7 @@ export default function Finder({ initialPath = "/icloud", windowId, maximized, i
                 }`}
               >
                 <Home size={16} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
-                <span>Likhith SP</span>
+                <span>{localStorage.getItem("lock_username") || "Khaled"}</span>
               </button>
               <button
                 onClick={() => navigateTo("/mac-hd")}

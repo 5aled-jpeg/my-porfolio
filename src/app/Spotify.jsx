@@ -144,7 +144,7 @@ export default function MusicApp({ windowId }) {
   }, []);
 
   const profilePhoto = localStorage.getItem("lock_profile_photo") || "https://i.pinimg.com/originals/bf/57/02/bf57026ee75af2f414000cec322f7404.gif";
-  const profileName = "Likhith SP";
+  const profileName = localStorage.getItem("lock_username") || "Khaled";
 
   const filteredSongs = songs.filter(song => 
     song.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

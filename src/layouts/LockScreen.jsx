@@ -108,59 +108,14 @@ export default function LockScreen({ goNext, isLocked }) {
   };
 
   // User profile state
-  const [username, setUsername] = useState(() => localStorage.getItem("lock_username") || "Likhith SP");
-  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem("lock_profile_photo") || "https://i.pinimg.com/originals/bf/57/02/bf57026ee75af2f414000cec322f7404.gif");
-  const [profileBg, setProfileBg] = useState(() => localStorage.getItem("lock_profile_bg") || "");
+  const [username, setUsername] = useState(() => localStorage.getItem("lock_username") || "Khaled");
+  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem("lock_profile_photo") || "/icons/apple.png");
+  const [profileBg, setProfileBg] = useState(() => localStorage.getItem("lock_profile_bg") || "#1e1e24");
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhoto, setEditPhoto] = useState("");
   const fileInputRef = useRef(null);
   const passwordInputRef = useRef(null);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if (showEditModal) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (document.activeElement !== passwordInputRef.current) {
-        if (passwordInputRef.current) {
-          passwordInputRef.current.focus();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [showEditModal]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Preload the lockscreen wallpaper image for faster boot
-  useEffect(() => {
-    const img = new Image();
-    img.src = localStorage.getItem("lockscreen_wallpaper") || "/Wallpaper/GoldenGate_6k.png";
-  }, []);
-
-  useEffect(() => {
-    const savedWallpaper = localStorage.getItem("lockscreen_wallpaper");
-    if (savedWallpaper) setLockscreenWallpaper(savedWallpaper);
-  }, []);
-
-  // Listen for depth effect setting changes
-  useEffect(() => {
-    const handleDepthChange = () => {
-      // Also refresh the wallpaper since it may have changed together with depth settings
-      const savedWallpaper = localStorage.getItem("lockscreen_wallpaper");
-      if (savedWallpaper) setLockscreenWallpaper(savedWallpaper);
-      setDepthEnabled(localStorage.getItem("lockscreen_depth_effect") === "true");
-      setDepthSubjectTop(parseInt(localStorage.getItem("lockscreen_depth_subject_top") || "30", 10));
-      setDepthForeground(localStorage.getItem("lockscreen_depth_foreground") || "");
-    };
-    window.addEventListener("lockscreenDepthChanged", handleDepthChange);
-    return () => window.removeEventListener("lockscreenDepthChanged", handleDepthChange);
-  }, []);
 
   const enterFullscreen = useCallback(() => {
     const elem = document.documentElement;
@@ -174,6 +129,20 @@ export default function LockScreen({ goNext, isLocked }) {
     setIsUnlocking(true);
     setTimeout(() => goNext(), 450);
   }, [enterFullscreen, goNext]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (showEditModal) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleUnlock();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [showEditModal, handleUnlock]);
 
   // Clock drag handlers for depth mode
   const handleClockDragStart = useCallback((e) => {
@@ -534,23 +503,28 @@ export default function LockScreen({ goNext, isLocked }) {
         {!isMusicOpen && (
           <div
             className="flex flex-col items-center gap-3 group cursor-pointer"
-            onClick={openEditModal}
-            title="Click to edit profile"
+            onClick={handleUnlock}
+            title="Click to enter desktop"
           >
             {/* Avatar */}
             <div className="relative w-16 h-16">
               <div 
-                className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30 shadow-lg group-hover:border-white/60 transition-all flex items-center justify-center"
+                className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30 shadow-lg group-hover:border-white/60 group-hover:scale-105 transition-all flex items-center justify-center"
                 style={{ backgroundColor: profileBg || 'transparent' }}
               >
                 <img src={profilePhoto} alt="user" className="w-full h-full object-cover" />
               </div>
               {/* Edit hint icon */}
-              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={openEditModal}
+                title="Edit Profile"
+                className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm border border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="white">
                   <path d="M8.5 1.5a1.5 1.5 0 0 1 2.12 2.12L9.5 4.74 7.26 2.5 8.5 1.5zM6.5 3.26L1 8.76V11h2.24l5.5-5.5L6.5 3.26z"/>
                 </svg>
-              </div>
+              </button>
             </div>
             {/* Name */}
             <span
@@ -565,11 +539,15 @@ export default function LockScreen({ goNext, isLocked }) {
           </div>
         )}
 
-        {/* Password Entry */}
-        <div className="flex flex-col items-center gap-2 w-full">
-          <form 
-            onSubmit={handleSubmitPassword}
-            className={`relative w-48 mt-1 ${isWrongPassword ? 'shake-animation' : ''}`}
+        {/* Passwordless Login Button */}
+        <div className="flex flex-col items-center gap-2 w-full mt-1">
+          <button
+            type="button"
+            onClick={handleUnlock}
+            className="relative px-5 py-2 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 border border-white/20 text-white text-[13px] font-medium flex items-center gap-2 transition-all shadow-lg cursor-pointer group backdrop-blur-xl"
+            style={{
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+            }}
           >
             <GlassSurface
               tint={0.02}
@@ -578,39 +556,20 @@ export default function LockScreen({ goNext, isLocked }) {
               chroma={0.1}
               className="absolute inset-0 -z-10"
             />
-            <input
-              ref={passwordInputRef}
-              type="password"
-              placeholder="Enter Password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              className="w-full h-8 bg-transparent px-4 pr-8 text-white text-[13px] placeholder-white/60 outline-none transition-all"
-              style={{
-                fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
-              }}
-              autoFocus
-            />
-            {passwordInput && (
-              <button 
-                type="submit" 
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center transition-colors"
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14"></path>
-                  <path d="M12 5l7 7-7 7"></path>
-                </svg>
-              </button>
-            )}
-          </form>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/90 group-hover:translate-x-0.5 transition-transform">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+            <span>Click or Press Return to Enter</span>
+          </button>
 
           <span
-            className="text-[12px] text-white/80 mt-1"
+            className="text-[12px] text-white/70 mt-1"
             style={{
               textShadow: "0 1px 2px rgba(0,0,0,0.3)",
               fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
             }}
           >
-            Touch ID or Enter Password
+            Touch ID or Press Return
           </span>
         </div>
       </div>

@@ -340,3 +340,25 @@ h1 {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes macDockBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-16px);
+  }
+  55% {
+    transform: translateY(-3px);
+  }
+  75% {
+    transform: translateY(-8px);
+  }
+  90% {
+    transform: translateY(-1px);
+  }
+}
+
+.animate-dock-bounce {
+  animation: macDockBounce 0.7s cubic-bezier(0.28, 0.84, 0.42, 1);
+}

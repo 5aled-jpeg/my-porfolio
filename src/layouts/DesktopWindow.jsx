@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Dock from "../components/Dock";
 import AppWindow from "../components/AppWindow";
 import { useAppStore } from "../store/Appstore";
@@ -61,11 +61,11 @@ export default function Desktop({ setStage, isLocked = false }) {
   });
   const [showWidgetGallery, setShowWidgetGallery] = useState(false);
 
-  // Define allDesktopItems before useEffect
-  const allDesktopItems = [
+  // Memoize allDesktopItems to avoid unnecessary re-renders
+  const allDesktopItems = useMemo(() => [
     ...desktopFolders.filter(f => !f.parentFolderId).map(f => ({ ...f, type: "folder" })),
     ...desktopFiles.filter((f) => !f.parentFolderId).map(f => ({ ...f, type: "file" })),
-  ];
+  ], [desktopFolders, desktopFiles]);
 
   useEffect(() => {
     if (toast) {
@@ -176,7 +176,7 @@ export default function Desktop({ setStage, isLocked = false }) {
       window.removeEventListener('os_desktop_sync', handleDesktopSync);
       window.removeEventListener('os_clipboard_sync', handleClipboardSync);
     };
-  }, [selectedItem, allDesktopItems]);
+  }, []);
 
   const handleCopy = (item) => {
     if (!item) return;
