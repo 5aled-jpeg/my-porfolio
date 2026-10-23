@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import { useAppStore } from "../store/Appstore.js";
 import { AnimatePresence, motion } from "framer-motion";
+import { genieController } from "./ui/GenieOverlay";
 
 export default function AppWindow({ window: win }) {
   const close = useAppStore((s) => s.closeApp);
@@ -52,7 +53,31 @@ export default function AppWindow({ window: win }) {
   };
 
   const handleMinimize = () => {
+    const dockIconEl = document.querySelector(`[title="${win.appId}"]`);
+    const rect = dockIconEl ? dockIconEl.getBoundingClientRect() : null;
+    const dockPos = rect ? {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    } : {
+      x: window.innerWidth / 2,
+      y: window.innerHeight - 35,
+    };
+
+    const winRect = {
+      x: windowState.x,
+      y: windowState.y,
+      width: windowState.width,
+      height: windowState.height,
+    };
+
     minimize(win.id);
+    genieController.play({
+      dir: "minimize",
+      dock: dockPos,
+      win: winRect,
+      title: win.appId,
+      duration: 400,
+    });
   };
 
   const handleMaximize = () => {
