@@ -761,6 +761,140 @@ function drawTrashApp(ctx, w, h) {
   ctx.textAlign = "left";
 }
 
+function drawMapsApp(ctx, w, h) {
+  ctx.fillStyle = "#1e2430";
+  ctx.fillRect(0, 38, w, h - 38);
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.4);
+  ctx.lineTo(w, h * 0.45);
+  ctx.moveTo(w * 0.35, 38);
+  ctx.lineTo(w * 0.45, h);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(30, 30, 35, 0.9)";
+  ctx.beginPath();
+  ctx.roundRect(16, 52, 240, 36, [8, 8, 8, 8]);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "500 11px -apple-system, sans-serif";
+  ctx.fillText("📍 Akid Lotfi Mediterranean Garden", 30, 74);
+
+  ctx.fillStyle = "#ff3b30";
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, 8, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawPhoneApp(ctx, w, h) {
+  ctx.fillStyle = "#1c1c1e";
+  ctx.fillRect(0, 38, w, h - 38);
+  const r = 24;
+  const startX = w / 2 - 80;
+  const startY = 90;
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      const cx = startX + col * 75;
+      const cy = startY + row * 64;
+      ctx.fillStyle = "rgba(255,255,255,0.1)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawContactsApp(ctx, w, h) {
+  const sbW = 160;
+  ctx.fillStyle = "#222226";
+  ctx.fillRect(0, 38, sbW, h - 38);
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.font = "600 9px -apple-system, sans-serif";
+  ctx.fillText("ALL CONTACTS", 16, 56);
+
+  const pX = sbW + 1;
+  const pW = w - pX;
+  ctx.fillStyle = "#1e1e24";
+  ctx.fillRect(pX, 38, pW, h - 38);
+  ctx.fillStyle = "#007aff";
+  ctx.beginPath();
+  ctx.arc(pX + 50, 100, 24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "600 16px -apple-system, sans-serif";
+  ctx.fillText("Khaled", pX + 86, 104);
+}
+
+function drawMessagesApp(ctx, w, h) {
+  const sbW = Math.min(220, w * 0.35);
+  ctx.fillStyle = "#1e1e22";
+  ctx.fillRect(0, 38, sbW, h - 38);
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(sbW, 38, 1, h - 38);
+
+  ctx.fillStyle = "rgba(255,255,255,0.07)";
+  ctx.beginPath();
+  ctx.roundRect(12, 48, sbW - 24, 24, [6, 6, 6, 6]);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  ctx.font = "11px -apple-system, sans-serif";
+  ctx.fillText("Search", 24, 64);
+
+  const convs = [
+    { name: "Orkun", text: "That sounds awesome!", time: "11:42 AM", active: true },
+    { name: "Design Team", text: "Khaled: Updated the 3D model", time: "10:15 AM" },
+    { name: "Sarah", text: "Are we meeting tomorrow?", time: "Yesterday" },
+  ];
+
+  convs.forEach((c, idx) => {
+    const y = 86 + idx * 56;
+    if (c.active) {
+      ctx.fillStyle = "#007aff";
+      ctx.beginPath();
+      ctx.roundRect(8, y - 6, sbW - 16, 50, [8, 8, 8, 8]);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+    }
+    ctx.beginPath();
+    ctx.arc(28, y + 18, 14, 0, Math.PI * 2);
+    ctx.fillStyle = c.active ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)";
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 11px -apple-system, sans-serif";
+    ctx.fillText(c.name[0], 24, y + 22);
+
+    ctx.font = "600 12px -apple-system, sans-serif";
+    ctx.fillText(c.name, 48, y + 14);
+    ctx.fillStyle = c.active ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.45)";
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillText(c.text, 48, y + 30);
+  });
+
+  const pX = sbW + 1;
+  const pW = w - pX;
+  ctx.fillStyle = "#161618";
+  ctx.fillRect(pX, 38, pW, h - 38);
+
+  ctx.fillStyle = "#007aff";
+  ctx.beginPath();
+  ctx.roundRect(pX + pW - 180, 110, 160, 36, [16, 16, 4, 16]);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "12px -apple-system, sans-serif";
+  ctx.fillText("Hey, how is the macOS build?", pX + pW - 170, 132);
+
+  ctx.fillStyle = "#2c2c2e";
+  ctx.beginPath();
+  ctx.roundRect(pX + 20, 160, 190, 48, [16, 16, 16, 4]);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Looking incredible! The genie", pX + 32, 180);
+  ctx.fillText("animations are so silky.", pX + 32, 196);
+}
+
 // ─── Master Window Texture Creator ────────────────────────────────────────────
 
 export function createWindowTexture(appId, title, width = 640, height = 480) {
@@ -808,7 +942,9 @@ export function createWindowTexture(appId, title, width = 640, height = 480) {
 
   // Dispatch dedicated real app renderer based on appId / title
   const id = `${appId || ""} ${title || ""}`.toLowerCase();
-  if (id.includes("mail")) {
+  if (id.includes("mess")) {
+    drawMessagesApp(ctx, width, height);
+  } else if (id.includes("mail")) {
     drawMailApp(ctx, width, height);
   } else if (id.includes("calc")) {
     drawCalculatorApp(ctx, width, height);
@@ -828,6 +964,12 @@ export function createWindowTexture(appId, title, width = 640, height = 480) {
     drawSettingsApp(ctx, width, height);
   } else if (id.includes("trash")) {
     drawTrashApp(ctx, width, height);
+  } else if (id.includes("map")) {
+    drawMapsApp(ctx, width, height);
+  } else if (id.includes("phone") || id.includes("face")) {
+    drawPhoneApp(ctx, width, height);
+  } else if (id.includes("contact")) {
+    drawContactsApp(ctx, width, height);
   } else {
     drawFinderApp(ctx, width, height);
   }
@@ -855,25 +997,26 @@ export function renderGenieScanline(
   const scaleY = off.height / winH;
   const sliceSrcH = Math.max(1, 2 * scaleY);
 
+  // Pure reversible macOS genie scanline equation:
+  // At rawT = 0, open is at dock (0), minimize is at full window (1).
+  // At rawT = 1, open is at full window (1), minimize is at dock (0).
+  const t = dir === "minimize" ? 1 - rawT : rawT;
+
   for (let y = 0; y < winH; y += 2) {
     const r = y / winH;
-    const rowXStart = dir === "minimize" ? (1 - r) * 0.65 : r * 0.65;
-    const xP = clamp((rawT - rowXStart) / (1 - rowXStart), 0, 1);
+    // Row x & y progression
+    const rowXStart = r * 0.65;
+    const xP = clamp((t - rowXStart) / (1 - rowXStart), 0, 1);
     const xE = eioC(xP);
-    const rowYStart = dir === "minimize" ? (1 - r) * 0.2 : r * 0.2;
-    const yP = clamp((rawT - rowYStart) / (1 - rowYStart), 0, 1);
+
+    const rowYStart = r * 0.2;
+    const yP = clamp((t - rowYStart) / (1 - rowYStart), 0, 1);
     const yE = eIn2(yP);
 
-    let left, right, destY;
-    if (dir === "minimize") {
-      left = lerp(win.x, dock.x, xE);
-      right = lerp(win.x + winW, dock.x, xE);
-      destY = lerp(win.y + y, dock.y, yE);
-    } else {
-      left = lerp(dock.x, win.x, xE);
-      right = lerp(dock.x, win.x + winW, xE);
-      destY = lerp(dock.y, win.y + y, yE);
-    }
+    const left = lerp(dock.x, win.x, xE);
+    const right = lerp(dock.x, win.x + winW, xE);
+    const destY = lerp(dock.y, win.y + y, yE);
+
     const rowW = right - left;
     if (rowW < 1) continue;
 
@@ -883,8 +1026,8 @@ export function renderGenieScanline(
   }
 
   const glowRaw = dir === "minimize" ? rawT : 1 - rawT;
-  if (glowRaw > 0.75) {
-    const a = eOut2((glowRaw - 0.75) / 0.25) * 0.35;
+  if (glowRaw > 0.72) {
+    const a = eOut2((glowRaw - 0.72) / 0.28) * 0.4;
     const hex = Math.round(a * 255).toString(16).padStart(2, "0");
     const g = ctx.createRadialGradient(dock.x, dock.y, 0, dock.x, dock.y, 65);
     g.addColorStop(0, "#ffffff" + hex);
@@ -894,7 +1037,20 @@ export function renderGenieScanline(
   }
 }
 
-// ─── Global Genie Controller ──────────────────────────────────────────────────
+// ─── Global Genie Controller, Snapshot & Bounds Registries ──────────────────────
+
+export const realAppSnapshots = {};
+export const windowBoundsRegistry = {};
+
+export function setAppSnapshot(appId, canvas) {
+  if (appId && canvas) {
+    realAppSnapshots[appId.toLowerCase()] = canvas;
+  }
+}
+
+export function getAppSnapshot(appId) {
+  return appId ? realAppSnapshots[appId.toLowerCase()] : null;
+}
 
 class GenieController {
   constructor() {
@@ -923,8 +1079,14 @@ class GenieController {
     }
 
     cancelAnimationFrame(this.raf);
-    // Use live texture if provided (e.g. from DOM capture) or generate authentic real app texture
-    const offTexture = texture || createWindowTexture(appId, title, win.width, win.height);
+    // 1. Prefer live/captured DOM texture
+    // 2. Fall back to pre-rendered real React DOM snapshot
+    // 3. Fall back to crisp window texture creator
+    const offTexture =
+      texture ||
+      getAppSnapshot(appId) ||
+      createWindowTexture(appId, title, win.width, win.height);
+
     const W = window.innerWidth;
     const H = window.innerHeight;
     let startTime = null;

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Jaini+Purva&family=Syne:wght@400..800&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:wght@400;500;700&family=Jaini+Purva&family=Syne:wght@400..800&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&family=Inter:wght@100..900&display=swap");
 @import "tailwindcss";
 
 /* Ensure all messages app child controls inherit Apple/Inter fonts */
@@ -78,20 +78,92 @@
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* macOS Style Cursor */
-* {
-  cursor: default;
+/* macOS Authentic Cursor System (from daviddarnes/mac-cursors) */
+html, body, * {
+  cursor: -webkit-image-set(url('/cursors/default.png') 1x, url('/cursors/default@2x.png') 2x) 10 8,
+          url('/cursors/default.png') 10 8,
+          default;
 }
 
 a, button, [role="button"], input[type="submit"], input[type="button"], 
 .cursor-pointer, [onclick], label[for], select, summary {
-  cursor: pointer;
+  cursor: -webkit-image-set(url('/cursors/handpointing.png') 1x, url('/cursors/handpointing@2x.png') 2x) 12 8,
+          url('/cursors/handpointing.png') 12 8,
+          pointer !important;
 }
 
 input[type="text"], input[type="password"], input[type="email"], 
 input[type="number"], input[type="search"], input[type="url"], 
-input[type="tel"], textarea, [contenteditable="true"] {
-  cursor: text;
+input[type="tel"], textarea, [contenteditable="true"], .cursor-text {
+  cursor: -webkit-image-set(url('/cursors/textcursor.png') 1x, url('/cursors/textcursor@2x.png') 2x) 16 15,
+          url('/cursors/textcursor.png') 16 15,
+          text !important;
+}
+
+.cursor-grab, [draggable="true"] {
+  cursor: -webkit-image-set(url('/cursors/handopen.png') 1x, url('/cursors/handopen@2x.png') 2x) 15 14,
+          url('/cursors/handopen.png') 15 14,
+          grab !important;
+}
+
+.cursor-grabbing, :active[draggable="true"] {
+  cursor: -webkit-image-set(url('/cursors/handgrabbing.png') 1x, url('/cursors/handgrabbing@2x.png') 2x) 15 15,
+          url('/cursors/handgrabbing.png') 15 15,
+          grabbing !important;
+}
+
+.cursor-not-allowed, [disabled], :disabled {
+  cursor: -webkit-image-set(url('/cursors/notallowed.png') 1x, url('/cursors/notallowed@2x.png') 2x) 16 16,
+          url('/cursors/notallowed.png') 16 16,
+          not-allowed !important;
+}
+
+.cursor-crosshair {
+  cursor: -webkit-image-set(url('/cursors/cross.png') 1x, url('/cursors/cross@2x.png') 2x) 16 16,
+          url('/cursors/cross.png') 16 16,
+          crosshair !important;
+}
+
+.cursor-wait, .is-busy {
+  cursor: -webkit-image-set(url('/cursors/beachball.png') 1x, url('/cursors/beachball@2x.png') 2x) 16 16,
+          url('/cursors/beachball.png') 16 16,
+          wait !important;
+}
+
+.cursor-col-resize, .cursor-ew-resize {
+  cursor: -webkit-image-set(url('/cursors/resizeleftright.png') 1x, url('/cursors/resizeleftright@2x.png') 2x) 16 16,
+          url('/cursors/resizeleftright.png') 16 16,
+          col-resize !important;
+}
+
+.cursor-row-resize, .cursor-ns-resize {
+  cursor: -webkit-image-set(url('/cursors/resizenorthsouth.png') 1x, url('/cursors/resizenorthsouth@2x.png') 2x) 16 16,
+          url('/cursors/resizenorthsouth.png') 16 16,
+          row-resize !important;
+}
+
+.cursor-nesw-resize {
+  cursor: -webkit-image-set(url('/cursors/resizenortheastsouthwest.png') 1x, url('/cursors/resizenortheastsouthwest@2x.png') 2x) 16 16,
+          url('/cursors/resizenortheastsouthwest.png') 16 16,
+          nesw-resize !important;
+}
+
+.cursor-nwse-resize {
+  cursor: -webkit-image-set(url('/cursors/resizenorthwestsoutheast.png') 1x, url('/cursors/resizenorthwestsoutheast@2x.png') 2x) 16 16,
+          url('/cursors/resizenorthwestsoutheast.png') 16 16,
+          nwse-resize !important;
+}
+
+.cursor-zoom-in {
+  cursor: -webkit-image-set(url('/cursors/zoomin.png') 1x, url('/cursors/zoomin@2x.png') 2x) 15 15,
+          url('/cursors/zoomin.png') 15 15,
+          zoom-in !important;
+}
+
+.cursor-zoom-out {
+  cursor: -webkit-image-set(url('/cursors/zoomout.png') 1x, url('/cursors/zoomout@2x.png') 2x) 15 15,
+          url('/cursors/zoomout.png') 15 15,
+          zoom-out !important;
 }
 
 /* Smooth cursor transitions */

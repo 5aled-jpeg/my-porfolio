@@ -1,0 +1,405 @@
+.ifg-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #060608;
+  overflow: hidden;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+  cursor: grab;
+  touch-action: none;
+}
+
+.ifg-root.dragging {
+  cursor: grabbing;
+}
+
+.ifg-root.zoom-mode {
+  cursor: default;
+}
+
+/* Main Viewport */
+.ifg-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ifg-canvas-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  isolation: isolate;
+  touch-action: none;
+}
+
+.ifg-grid-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ifg-grid-item {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  background: #0d0d10;
+  cursor: pointer;
+  will-change: transform;
+  z-index: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ifg-grid-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), inset 0 0.5px 0 rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+  z-index: 5;
+}
+
+.ifg-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  transition: transform 0.35s ease;
+}
+
+.ifg-grid-item:hover img {
+  transform: scale(1.04);
+}
+
+/* Split Screen Layout (Zoom Mode) */
+.ifg-split-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(6, 6, 8, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ifg-split-screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.ifg-split-left {
+  position: relative;
+  width: 54%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+  cursor: pointer;
+}
+
+/* Image target for GSAP Flip fit */
+.ifg-zoom-target {
+  width: 82%;
+  height: 82%;
+  max-width: 680px;
+  max-height: 520px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* Scaling image overlay during Flip animation */
+.ifg-scaling-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  pointer-events: none;
+  will-change: transform, width, height, left, top;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.ifg-scaling-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ifg-split-right {
+  position: relative;
+  width: 46%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 60px 40px 20px;
+}
+
+.ifg-info-panel {
+  max-width: 460px;
+}
+
+.ifg-slide-number {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.ifg-slide-title {
+  color: #ffffff;
+  font-size: clamp(26px, 2.5vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 0 0 16px 0;
+}
+
+.ifg-slide-description {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 400;
+  margin: 0 0 28px 0;
+}
+
+/* Action bar */
+.ifg-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ifg-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 8px 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ifg-action-btn.primary {
+  background: #007aff;
+  border-color: #007aff;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0, 122, 255, 0.4);
+}
+
+.ifg-action-btn.primary:hover {
+  background: #0066d6;
+  border-color: #0066d6;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 122, 255, 0.5);
+}
+
+.ifg-action-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.ifg-action-btn:active {
+  transform: translateY(1px);
+}
+
+/* Close Button */
+.ifg-close-button {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 55;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.ifg-close-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.06);
+}
+
+.ifg-close-button svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(180deg);
+}
+
+/* Controls Container */
+.ifg-controls-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 25;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.ifg-controls-container.split-mode {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ifg-percentage-indicator {
+  background: rgba(25, 25, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.ifg-switch {
+  display: flex;
+  gap: 4px;
+  background: rgba(25, 25, 28, 0.85);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.ifg-switch-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ifg-switch-button:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ifg-switch-button.current {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+/* Toast Pill */
+.ifg-toast-pill {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(20, 20, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  animation: ifgToastPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ifgToastPop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+/* Vignette overlay */
+.ifg-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 65%,
+    rgba(0, 0, 0, 0.4) 85%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+@media (max-width: 768px) {
+  .ifg-split-screen {
+    flex-direction: column;
+  }
+  .ifg-split-left {
+    width: 100%;
+    height: 50%;
+    padding: 20px;
+  }
+  .ifg-split-right {
+    width: 100%;
+    height: 50%;
+    padding: 10px 24px;
+  }
+}

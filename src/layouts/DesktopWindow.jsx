@@ -23,6 +23,8 @@ import GlassSFWeatherWidget from "../components/widgets/GlassSFWeatherWidget";
 import GlassDayWidget from "../components/widgets/GlassDayWidget";
 import GlassSmallWorldClockWidget from "../components/widgets/GlassSmallWorldClockWidget";
 import GlassWideRemindersWidget from "../components/widgets/GlassWideRemindersWidget";
+import GlassMusicPlayerWidget from "../components/widgets/GlassMusicPlayerWidget";
+import GlassGitHubContributionsWidget from "../components/widgets/GlassGitHubContributionsWidget";
 import { FiX } from "react-icons/fi";
 
 export default function Desktop({ setStage, isLocked = false }) {
@@ -30,11 +32,25 @@ export default function Desktop({ setStage, isLocked = false }) {
   const openApp = useAppStore((s) => s.openApp);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const [wallpaper, setWallpaper] = useState(() => {
-    return localStorage.getItem("desktop_wallpaper") || "/Wallpaper/GoldenGate_6k.png";
+    return localStorage.getItem("desktop_wallpaper") || "/Wallpaper/FGrad_Feb21_Mac.png";
   });
   const [contextMenu, setContextMenu] = useState(null);
   const [desktopFolders, setDesktopFolders] = useState(() => {
-    return JSON.parse(localStorage.getItem("os_desktop_folders") || "[]");
+    const saved = localStorage.getItem("os_desktop_folders");
+    if (!saved || !localStorage.getItem("os_has_default_folder_v1")) {
+      const defaultFolders = [
+        {
+          id: "folder_untitled_default",
+          name: "untitled folder",
+          x: 40,
+          y: 70,
+        }
+      ];
+      localStorage.setItem("os_desktop_folders", JSON.stringify(defaultFolders));
+      localStorage.setItem("os_has_default_folder_v1", "true");
+      return defaultFolders;
+    }
+    return JSON.parse(saved);
   });
   const [desktopFiles, setDesktopFiles] = useState(() => {
     return JSON.parse(localStorage.getItem("os_desktop_files") || "[]");
@@ -57,7 +73,59 @@ export default function Desktop({ setStage, isLocked = false }) {
   const [toast, setToast] = useState(null);
 
   const [widgets, setWidgets] = useState(() => {
-    return JSON.parse(localStorage.getItem("os_desktop_widgets") || "[]");
+    try {
+      const hasPreset = localStorage.getItem("os_has_preset_widgets_v5");
+      const saved = JSON.parse(localStorage.getItem("os_desktop_widgets") || "[]");
+      if (!hasPreset) {
+        const w = typeof window !== "undefined" ? window.innerWidth : 1024;
+        const offsetX = w > 1024 ? Math.round((w - 1024) * 0.7) : 0;
+
+        const presetWidgets = [
+          {
+            id: "preset_github_contributions",
+            type: "glass_github_contributions",
+            x: 400 + offsetX,
+            y: 35,
+          },
+          {
+            id: "preset_music_player",
+            type: "glass_music_player",
+            x: 805 + offsetX,
+            y: 35,
+          },
+          {
+            id: "preset_glass_clock",
+            type: "glass_clock",
+            x: 418 + offsetX,
+            y: 188,
+          },
+          {
+            id: "preset_photo",
+            type: "photo",
+            x: 562 + offsetX,
+            y: 188,
+          },
+          {
+            id: "preset_glass_weather",
+            type: "glass_weather",
+            x: 678 + offsetX,
+            y: 315,
+          },
+          {
+            id: "preset_calendar",
+            type: "calendar",
+            x: 907 + offsetX,
+            y: 312,
+          },
+        ];
+        localStorage.setItem("os_desktop_widgets", JSON.stringify(presetWidgets));
+        localStorage.setItem("os_has_preset_widgets_v5", "true");
+        return presetWidgets;
+      }
+      return saved;
+    } catch {
+      return [];
+    }
   });
   const [showWidgetGallery, setShowWidgetGallery] = useState(false);
 
@@ -554,6 +622,8 @@ export default function Desktop({ setStage, isLocked = false }) {
                 {widget.type === 'glass_mini_calendar' && <GlassMiniCalendarWidget />}
                 {widget.type === 'glass_sf_weather' && <GlassSFWeatherWidget />}
                 {widget.type === 'glass_day' && <GlassDayWidget />}
+                {widget.type === 'glass_music_player' && <GlassMusicPlayerWidget />}
+                {widget.type === 'glass_github_contributions' && <GlassGitHubContributionsWidget />}
                 
                 {/* Remove button (visible on hover) */}
                 <button
@@ -922,6 +992,43 @@ export default function Desktop({ setStage, isLocked = false }) {
                 </div>
                 <div className="pointer-events-none scale-100 transform origin-top w-full flex justify-center">
                   <GlassDayWidget />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <div className="w-full mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/90 font-medium">Vinyl Music Player</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500/30 text-rose-300 font-mono border border-rose-500/30">NEW</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("os_widget_added", { detail: { type: 'glass_music_player' } }));
+                    }}
+                    className="px-3 py-1 bg-white/20 rounded-full text-xs text-white hover:bg-white/30 font-medium transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="pointer-events-none scale-[0.68] transform origin-top w-full flex justify-center -mb-28">
+                  <GlassMusicPlayerWidget />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <div className="w-full mb-3 flex items-center justify-between">
+                  <span className="text-white/90 font-medium">GitHub Contributions</span>
+                  <button 
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("os_widget_added", { detail: { type: 'glass_github_contributions' } }));
+                    }}
+                    className="px-3 py-1 bg-white/20 rounded-full text-xs text-white hover:bg-white/30"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="pointer-events-none transform origin-top scale-[0.52] w-[590px] h-[125px] flex items-start justify-center overflow-hidden">
+                  <GlassGitHubContributionsWidget />
                 </div>
               </div>
             </div>

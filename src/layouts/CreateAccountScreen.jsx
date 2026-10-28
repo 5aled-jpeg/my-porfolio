@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const avatars = [
   { id: 'panda', image: '/icons/panda.png', bg: 'bg-[#92e482]', color: '#92e482' },
-  { id: 'cow', image: '/icons/cow-face.png', bg: 'bg-[#f4ac84]', color: '#f4ac84' },
+  { id: 'cow', image: '/icons/khaled-avatar.png', bg: 'bg-[#5c4033]', color: '#5c4033' },
   { id: 'chicken', image: '/icons/chicken.png', bg: 'bg-[#e49ca4]', color: '#e49ca4' },
   { id: 'fox', image: '/icons/fox.png', bg: 'bg-[#c4a4f4]', color: '#c4a4f4' },
   { id: 'owl', image: '/icons/owl.png', bg: 'bg-[#84c4f4]', color: '#84c4f4' }
@@ -91,7 +91,7 @@ export default function CreateAccountScreen({ goNext, goBack }) {
   return (
     <div
       className="w-screen h-screen flex flex-col items-center justify-center relative overflow-hidden bg-cover bg-center"
-      style={{ backgroundImage: "url('/Wallpaper/GoldenGate_6k.png')" }}
+      style={{ backgroundImage: "url('/Wallpaper/FGrad_Feb21_Mac.png')" }}
     >
       <div className="absolute inset-0 backdrop-blur-[60px] bg-black/5 z-0" />
 

@@ -80,6 +80,11 @@ export const depthPresets = {
     subjectTop: 30,
     suitable: true,
   },
+  "/Wallpaper/FGrad_Feb21_Mac.png": {
+    name: "Apple Gradient Mesh",
+    subjectTop: 30,
+    suitable: false,
+  },
   "/Wallpaper/depth-mountain-peak.png": {
     name: "Depth Mountain Peak",
     subjectTop: 25,

@@ -1,11 +1,66 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import WeightSweepPreloader from "../components/ui/weight-sweep-preloader";
+import LockScreen from "./LockScreen";
+import { playMacStartupChime } from "../utils/sound";
+import { toCanvas } from "html-to-image";
+import { setAppSnapshot } from "../components/ui/GenieOverlay";
+import Finder from "../app/Finder";
+import { Safari } from "../app/Safari";
+import Mail from "../app/Mail";
+import Maps from "../app/Maps";
+import Phone from "../app/Phone";
+import Contacts from "../app/Contacts";
+import Blogs from "../app/Blogs/BlogsSection.jsx";
+import MacGallery from "../app/Gallary";
+import Spotify from "../app/Spotify";
+import CalendarApp from "../app/Calendar";
+import Terminal from "../app/Terminal";
+import Settings from "../app/Settings";
+import Trash from "../app/Trash";
+
+const CRITICAL_IMAGES = [
+  "/Wallpaper/FGrad_Feb21_Mac.png",
+  "/icons/khaled-avatar.png",
+  "/Wallpaper/GoldenGate_6k.png",
+  "/Wallpaper/Golden_Dark_6k.png",
+  "/icons/apple.png",
+  "https://cdn.21st.dev/assets/mirror/99/9963f31f43cd77b0c28981ba7bac04db749a5749019f554d1afb75225a3e9151.png",
+  "https://cdn.21st.dev/assets/mirror/d5/d558230225bb0dd1897db6c7cf0d03b29506eef8078fe25313c48cd8f72d05ad.png",
+  "https://cdn.21st.dev/assets/mirror/7b/7bb8671183d2a2bbb8a3858b1971cc5699ba0103673b011590d22f0fa309bb87.png",
+  "https://s3-new.macosicons.com/macosicons/parse/low_res_Maps_macOS_Golden_Gate_jOxvDFgSHw-b6ceac8cd4.png",
+  "https://s3-new.macosicons.com/macosicons/parse/low_res_Phone_macOS_Golden_Gate_NWKA493TFf-bffc4d8efc.png",
+  "https://s3-new.macosicons.com/macosicons/parse/low_res_Contacts_macOS_Golden_Gate_oKWnz3UDu6-20ba74faaf.png",
+  "https://cdn.21st.dev/assets/mirror/cb/cbfa4e5db383bbb86683edc2f7d309e9fd7000d07833f6449837be51b77558fa.png",
+  "https://cdn.21st.dev/assets/mirror/45/45c61147b702b2765802969df55878aa5f69e27abe656174339dc661d0f9a31d.png",
+  "https://cdn.21st.dev/assets/mirror/03/035600d3c05ccbfc974888a3319fa721dac7321dd18734a5d0405af1fd259c41.png",
+  "https://cdn.21st.dev/assets/mirror/e1/e1e93987488d4a904f4b7273213d36319c73d81ca9680b440c144f69af5a7f9a.png",
+  "https://cdn.21st.dev/assets/mirror/11/11d8587bae8852b8232d1f37e318c4b0fbbd2b0f2b61c71a79dbae327b4fa0c1.webp",
+  "https://s3-new.macosicons.com/macosicons/parse/low_res_Settings_macOS_Golden_Gate_iR77bVvZBc-502ef0dc70.png",
+  "https://s3-new.macosicons.com/macosicons/parse/Bin_Empty_Tahoe_x2cZW1cg7Y_lowResPng-cc516d2e3c.png"
+];
+
+const BOOT_APPS = [
+  { id: "finder", name: "Finder", comp: <Finder />, width: 840, height: 580, hasTitleBar: false },
+  { id: "safari", name: "Safari", comp: <Safari />, width: 860, height: 580, hasTitleBar: false },
+  { id: "mail", name: "Mail", comp: <Mail />, width: 840, height: 580, hasTitleBar: false },
+  { id: "maps", name: "Maps", comp: <Maps />, width: 840, height: 580, hasTitleBar: false },
+  { id: "phone", name: "Phone", comp: <Phone />, width: 720, height: 520, hasTitleBar: false },
+  { id: "contacts", name: "Contacts", comp: <Contacts />, width: 720, height: 520, hasTitleBar: false },
+  { id: "notes", name: "Notes", comp: <Blogs />, width: 840, height: 580, hasTitleBar: false },
+  { id: "photos", name: "Photos", comp: <MacGallery />, width: 840, height: 580, hasTitleBar: false },
+  { id: "music", name: "Music", comp: <Spotify />, width: 840, height: 580, hasTitleBar: false },
+  { id: "calendar", name: "Calendar", comp: <CalendarApp />, width: 840, height: 580, hasTitleBar: false },
+  { id: "terminal", name: "Terminal", comp: <Terminal />, width: 700, height: 460, hasTitleBar: true },
+  { id: "settings", name: "Settings", comp: <Settings />, width: 780, height: 520, hasTitleBar: true },
+  { id: "trash", name: "Trash", comp: <Trash />, width: 840, height: 580, hasTitleBar: false },
+];
 
 export default function PowerScreen({ goNext, autoBoot = true }) {
   const [bootStarted, setBootStarted] = useState(autoBoot);
-  const [progress, setProgress] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [preloadDone, setPreloadDone] = useState(false);
+  const [isPanelActive, setIsPanelActive] = useState(false);
   const goNextRef = useRef(goNext);
+  const appRefs = useRef({});
 
   useEffect(() => {
     goNextRef.current = goNext;
@@ -17,93 +72,127 @@ export default function PowerScreen({ goNext, autoBoot = true }) {
     }
   }, [bootStarted]);
 
-  const skipBoot = () => {
-    setIsComplete(true);
-    if (goNextRef.current) goNextRef.current();
-  };
-
   useEffect(() => {
     if (!bootStarted) return;
+    let cancelled = false;
 
-    // Simulate authentic Apple boot loading (~2.2 seconds)
-    const duration = 2200;
-    const interval = 30;
-    const increment = 100 / (duration / interval);
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + increment + (Math.random() * 1.5 - 0.5);
-        if (next >= 100) {
-          clearInterval(timer);
-          setIsComplete(true);
-          return 100;
-        }
-        return next;
+    const runEssentialPreload = async () => {
+      // 1. Parallel preload for images & wallpapers
+      const imagePromises = CRITICAL_IMAGES.map((url) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = url;
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+        });
       });
-    }, interval);
 
-    return () => clearInterval(timer);
+      // 2. Background snapshot pre-warming in background microtasks
+      const snapshotWorker = async () => {
+        await new Promise((r) => requestAnimationFrame(r));
+        for (const app of BOOT_APPS) {
+          if (cancelled) break;
+          const node = appRefs.current[app.id];
+          if (node) {
+            try {
+              const canvas = await toCanvas(node, { pixelRatio: 1, cacheBust: false });
+              if (!cancelled && canvas) {
+                setAppSnapshot(app.id, canvas);
+              }
+            } catch (err) {}
+          }
+          await new Promise((r) => setTimeout(r, 10));
+        }
+      };
+
+      await Promise.allSettled([
+        Promise.allSettled(imagePromises),
+        snapshotWorker(),
+      ]);
+
+      if (!cancelled) {
+        setPreloadDone(true);
+      }
+    };
+
+    runEssentialPreload();
+
+    return () => {
+      cancelled = true;
+    };
   }, [bootStarted]);
 
-  useEffect(() => {
-    if (isComplete) {
-      const timeout = setTimeout(() => {
-        if (goNextRef.current) goNextRef.current();
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [isComplete]);
-
   return (
-    <div
-      onClick={skipBoot}
-      className="w-screen h-screen flex flex-col items-center justify-center overflow-hidden bg-black relative select-none cursor-pointer"
-      title="Click anywhere to skip boot"
-    >
-      <AnimatePresence mode="wait">
-        {!isComplete && (
-          <motion.div
-            key="boot-screen"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              transition: { duration: 0.5, ease: "easeOut" }
-            }}
-            className="flex flex-col items-center justify-center gap-10 z-10"
-          >
-            {/* Apple Logo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="mb-14"
+    <div className="w-screen h-screen overflow-hidden bg-transparent relative select-none">
+      {/* Hidden pre-warming stage (active ONLY during boot screen, completely unmounted after) */}
+      {!preloadDone && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            left: -10000,
+            top: 0,
+            pointerEvents: "none",
+            zIndex: -99999,
+          }}
+        >
+          {BOOT_APPS.map((item) => (
+            <div
+              key={item.id}
+              ref={(el) => {
+                appRefs.current[item.id] = el;
+              }}
+              style={{
+                width: item.width,
+                height: item.height,
+                marginBottom: 30,
+              }}
+              className="flex flex-col overflow-hidden rounded-xl bg-[#1e1e1e] text-white border border-white/10 shadow-2xl"
             >
-              <svg
-                viewBox="0 0 170 170"
-                className="w-20 h-20 text-white fill-current drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-              >
-                <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.346-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925s12.793-5.51 19.948-5.629c3.915 0 9.049 1.211 15.429 3.591 6.362 2.388 10.447 3.599 12.238 3.599 1.339 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.222 25.222 0 0 1-.188-3.07c0-7.778 3.386-16.102 9.399-22.908 3.002-3.446 6.82-6.311 11.45-8.597 4.62-2.252 8.99-3.497 13.1-3.71.12 1.083.17 2.166.17 3.24z" />
-              </svg>
-            </motion.div>
+              {item.hasTitleBar && (
+                <div className="h-9 px-4 flex items-center bg-[#252528] border-b border-white/10 shrink-0 relative">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                    <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                    <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+                  </div>
+                  <div className="absolute left-1/2 -translate-x-1/2 text-xs font-medium text-white/70">
+                    {item.name}
+                  </div>
+                </div>
+              )}
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {item.comp}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-            {/* Progress Bar Container */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="w-48 h-1 bg-white/20 rounded-full overflow-hidden"
-            >
-              {/* Progress Bar Fill */}
-              <motion.div
-                className="h-full bg-white rounded-full"
-                style={{ width: `${progress}%` }}
-                transition={{ duration: 0.05, ease: "linear" }}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* WeightSweepPreloader with sliding LockScreen panel */}
+      <WeightSweepPreloader
+        preset="ink"
+        palette={{ paper: "#08080c", ink: "#f4f0e6" }}
+        label="Apple Silicon / macOS"
+        caption="Pre-warming Core"
+        durationMs={2200}
+        slideDirection="down"
+        onPanel={() => {
+          setIsPanelActive(true);
+          playMacStartupChime();
+        }}
+        panelContent={
+          <LockScreen
+            goNext={() => {
+              if (goNextRef.current) {
+                goNextRef.current();
+              }
+            }}
+            isLocked={true}
+            isActive={isPanelActive}
+          />
+        }
+      />
     </div>
   );
 }

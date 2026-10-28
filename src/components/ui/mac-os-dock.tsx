@@ -23,6 +23,9 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
   className = ''
 }) => {
   const [mouseX, setMouseX] = useState<number | null>(null);
+  const mouseXRef = useRef<number | null>(null);
+  const currentScalesRef = useRef<number[]>(apps.map(() => 1));
+  const currentPositionsRef = useRef<number[]>([]);
   const [currentScales, setCurrentScales] = useState<number[]>(apps.map(() => 1));
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -125,84 +128,106 @@ const MacOSDock: React.FC<MacOSDockProps> = ({
   useEffect(() => {
     const initialScales = apps.map(() => minScale);
     const initialPositions = calculatePositions(initialScales);
+    currentScalesRef.current = initialScales;
+    currentPositionsRef.current = initialPositions;
     setCurrentScales(initialScales);
     setCurrentPositions(initialPositions);
   }, [apps, calculatePositions, minScale, config]);
 
-  // Animation loop
+  // Robust animation loop that always runs until scales fully restore
   const animateToTarget = useCallback(() => {
-    const targetScales = calculateTargetMagnification(mouseX);
+    const targetScales = calculateTargetMagnification(mouseXRef.current);
     const targetPositions = calculatePositions(targetScales);
-    const lerpFactor = mouseX !== null ? 0.22 : 0.14;
+    const lerpFactor = mouseXRef.current !== null ? 0.22 : 0.16;
 
     let needsAnother = false;
-    setCurrentScales(prevScales => {
-      let changed = false;
-      const next = prevScales.map((currentScale, index) => {
-        const diff = targetScales[index] - currentScale;
-        if (Math.abs(diff) > 0.002) {
-          needsAnother = true;
-          changed = true;
-          return currentScale + (diff * lerpFactor);
-        }
-        return targetScales[index];
-      });
-      return changed ? next : prevScales;
+    const nextScales = currentScalesRef.current.map((currentScale, index) => {
+      const diff = targetScales[index] - currentScale;
+      if (Math.abs(diff) > 0.001) {
+        needsAnother = true;
+        return currentScale + (diff * lerpFactor);
+      }
+      return targetScales[index];
     });
 
-    setCurrentPositions(prevPositions => {
-      let changed = false;
-      const next = prevPositions.map((currentPos, index) => {
-        const diff = targetPositions[index] - currentPos;
-        if (Math.abs(diff) > 0.1) {
-          needsAnother = true;
-          changed = true;
-          return currentPos + (diff * lerpFactor);
-        }
-        return targetPositions[index];
-      });
-      return changed ? next : prevPositions;
+    const nextPositions = currentPositionsRef.current.map((currentPos, index) => {
+      const diff = targetPositions[index] - currentPos;
+      if (Math.abs(diff) > 0.05) {
+        needsAnother = true;
+        return currentPos + (diff * lerpFactor);
+      }
+      return targetPositions[index];
     });
 
-    if (needsAnother || mouseX !== null) {
+    currentScalesRef.current = nextScales;
+    currentPositionsRef.current = nextPositions;
+
+    setCurrentScales(nextScales);
+    setCurrentPositions(nextPositions);
+
+    if (needsAnother || mouseXRef.current !== null) {
       animationFrameRef.current = requestAnimationFrame(animateToTarget);
+    } else {
+      animationFrameRef.current = undefined;
     }
-  }, [mouseX, calculateTargetMagnification, calculatePositions]);
+  }, [calculateTargetMagnification, calculatePositions]);
 
-  // Start/stop animation loop
+  // Global listener to detect when mouse leaves dock from any angle or rapid flick
   useEffect(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-    animationFrameRef.current = requestAnimationFrame(animateToTarget);
+    const handleGlobalPointerMove = (e: PointerEvent) => {
+      if (dockRef.current) {
+        const rect = dockRef.current.getBoundingClientRect();
+        // Give 15px buffer for smooth hover
+        const isInside =
+          e.clientX >= rect.left - 10 &&
+          e.clientX <= rect.right + 10 &&
+          e.clientY >= rect.top - 20 &&
+          e.clientY <= rect.bottom + 15;
 
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+        if (!isInside && mouseXRef.current !== null) {
+          mouseXRef.current = null;
+          setMouseX(null);
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+          animationFrameRef.current = requestAnimationFrame(animateToTarget);
+        }
       }
     };
+
+    window.addEventListener("pointermove", handleGlobalPointerMove);
+    return () => window.removeEventListener("pointermove", handleGlobalPointerMove);
   }, [animateToTarget]);
 
   // Throttled mouse movement handler
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const now = performance.now();
-    
     if (now - lastMouseMoveTime.current < 16) {
       return;
     }
-    
     lastMouseMoveTime.current = now;
-    
+
     if (dockRef.current) {
       const rect = dockRef.current.getBoundingClientRect();
       const padding = Math.max(8, baseIconSize * 0.12);
-      setMouseX(e.clientX - rect.left - padding);
+      const newX = e.clientX - rect.left - padding;
+      mouseXRef.current = newX;
+      setMouseX(newX);
+
+      if (!animationFrameRef.current) {
+        animationFrameRef.current = requestAnimationFrame(animateToTarget);
+      }
     }
-  }, [baseIconSize]);
+  }, [baseIconSize, animateToTarget]);
 
   const handleMouseLeave = useCallback(() => {
+    mouseXRef.current = null;
     setMouseX(null);
-  }, []);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    animationFrameRef.current = requestAnimationFrame(animateToTarget);
+  }, [animateToTarget]);
 
   const createBounceAnimation = (element: HTMLElement) => {
     const bounceHeight = Math.max(-8, -baseIconSize * 0.15);

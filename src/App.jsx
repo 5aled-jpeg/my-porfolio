@@ -3,11 +3,12 @@ import PowerScreen from "./layouts/PowerScreen";
 import LockScreen from "./layouts/LockScreen";
 import Desktop from "./layouts/DesktopWindow";
 import { useAppStore } from "./store/Appstore";
+import { playMacStartupChime } from "./utils/sound";
 
 const INACTIVITY_TIMEOUT = 60 * 1000; // 1 minute in milliseconds
 
 export default function App() {
-  const [stage, setStage] = useState(null);
+  const [stage, setStage] = useState("power");
   const inactivityTimerRef = useRef(null);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
 
@@ -21,17 +22,19 @@ export default function App() {
     const machineTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Algiers";
     localStorage.setItem("setup_timezone", machineTimezone);
 
-    if (!localStorage.getItem("lock_username") || ["Likhith SP", "Developer"].includes(localStorage.getItem("lock_username"))) {
-      localStorage.setItem("lock_username", "Khaled");
-    }
+    localStorage.setItem("lock_username", "khaled :)");
 
     if (localStorage.getItem("lock_password") === null) {
       localStorage.setItem("lock_password", "");
     }
 
-    if (!localStorage.getItem("lock_profile_photo") || localStorage.getItem("lock_profile_photo").includes("bf57026ee75af2f414000cec322f7404.gif")) {
-      localStorage.setItem("lock_profile_photo", "/icons/apple.png");
-      localStorage.setItem("lock_profile_bg", "#1e1e24");
+    localStorage.setItem("lock_profile_photo", "/icons/khaled-avatar.png");
+    localStorage.setItem("lock_profile_bg", "transparent");
+
+    if (!localStorage.getItem("desktop_wallpaper_preset_v5")) {
+      localStorage.setItem("desktop_wallpaper", "/Wallpaper/FGrad_Feb21_Mac.png");
+      localStorage.setItem("lockscreen_wallpaper", "/Wallpaper/FGrad_Feb21_Mac.png");
+      localStorage.setItem("desktop_wallpaper_preset_v5", "true");
     }
   }, []);
 
@@ -93,21 +96,6 @@ export default function App() {
     };
   }, [stage, resetInactivityTimer]);
  
-  // Boot and Stage Sequence
-  useEffect(() => {
-    const hasBootedInSession = sessionStorage.getItem("os_booted") === "true";
-    const savedState = localStorage.getItem("os_state");
-
-    if (!hasBootedInSession) {
-      // Show Apple logo boot loading screen on initial visit/tab open
-      setStage("power");
-    } else if (savedState === "desktop") {
-      setStage("desktop");
-    } else {
-      setStage("lock");
-    }
-  }, []);
-
   useEffect(() => {
     const disableRightClick = (e) => e.preventDefault();
     document.addEventListener("contextmenu", disableRightClick);
@@ -130,54 +118,31 @@ export default function App() {
     };
   }, [stage]);
 
-  useEffect(() => {
-    if (!stage) return;
-    localStorage.setItem("os_state", stage);
-    localStorage.setItem("os_state_time", String(Date.now()));
-  }, [stage]);
-
-  const handleBootComplete = useCallback(() => {
-    sessionStorage.setItem("os_booted", "true");
-    setStage("lock");
+  const handleUnlockToDesktop = useCallback(() => {
+    setStage("desktop");
   }, []);
-
-  if (!stage) return null;
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black select-none">
-      {/* Boot screen with Apple logo & progress bar */}
-      {stage === "power" && (
-        <PowerScreen
-          autoBoot={true}
-          goNext={handleBootComplete}
-        />
-      )}
-
-      {/* Reboot from Apple menu */}
-      {stage === "restart" && (
-        <PowerScreen
-          autoBoot={true}
-          goNext={handleBootComplete}
-        />
-      )}
+      {/* Desktop workspace always rendered underneath */}
+      <div className="absolute inset-0 z-0">
+        <Desktop setStage={setStage} isLocked={stage !== "desktop"} />
+      </div>
       
-      {/* Desktop renders behind lock screen so it's ready and visible during slide-up */}
-      {(stage === "lock" || stage === "desktop") && (
-        <div className="absolute inset-0">
-          <Desktop setStage={setStage} isLocked={stage === "lock"} />
+      {/* Lock screen when locked directly from desktop / sleep */}
+      {stage === "lock" && (
+        <div className="absolute inset-0 z-40">
+          <LockScreen goNext={handleUnlockToDesktop} isLocked={true} isActive={true} />
         </div>
       )}
-      
-      {/* Lock screen slides up smoothly to reveal desktop without requiring a password */}
-      {(stage === "lock" || stage === "desktop") && (
-        <div 
-          className="absolute inset-0 z-50"
-          style={{
-            visibility: stage === "lock" ? "visible" : "hidden",
-            pointerEvents: stage === "lock" ? "auto" : "none"
-          }}
-        >
-          <LockScreen goNext={() => setStage("desktop")} isLocked={stage === "lock"} />
+
+      {/* Boot loader overlay with WeightSweepPreloader and sliding Login Screen */}
+      {(stage === "power" || stage === "restart") && (
+        <div className="absolute inset-0 z-50 pointer-events-auto">
+          <PowerScreen
+            autoBoot={true}
+            goNext={handleUnlockToDesktop}
+          />
         </div>
       )}
     </div>

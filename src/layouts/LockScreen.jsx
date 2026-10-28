@@ -33,7 +33,7 @@ const MacBatteryIcon = () => (
   </svg>
 );
 
-export default function LockScreen({ goNext, isLocked }) {
+export default function LockScreen({ goNext, isLocked, isActive = true }) {
   const isAudioPlaying = useAppStore((state) => state.isAudioPlaying);
   const currentTrack = useAppStore((state) => state.currentTrack);
   const toggleAudio = useAppStore((state) => state.toggleAudio);
@@ -50,7 +50,7 @@ export default function LockScreen({ goNext, isLocked }) {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [time, setTime] = useState(new Date());
   const [lockscreenWallpaper, setLockscreenWallpaper] = useState(() => {
-    return localStorage.getItem("lockscreen_wallpaper") || "/Wallpaper/GoldenGate_6k.png";
+    return localStorage.getItem("lockscreen_wallpaper") || "/Wallpaper/FGrad_Feb21_Mac.png";
   });
   const [depthEnabled, setDepthEnabled] = useState(() => {
     return localStorage.getItem("lockscreen_depth_effect") === "true";
@@ -108,9 +108,26 @@ export default function LockScreen({ goNext, isLocked }) {
   };
 
   // User profile state
-  const [username, setUsername] = useState(() => localStorage.getItem("lock_username") || "Khaled");
-  const [profilePhoto, setProfilePhoto] = useState(() => localStorage.getItem("lock_profile_photo") || "/icons/apple.png");
-  const [profileBg, setProfileBg] = useState(() => localStorage.getItem("lock_profile_bg") || "#1e1e24");
+  const [username, setUsername] = useState(() => {
+    const saved = localStorage.getItem("lock_username");
+    if (!saved || ["Likhith SP", "Developer", "Khaled"].includes(saved) || !localStorage.getItem("lock_username_v2")) {
+      localStorage.setItem("lock_username", "khaled :)");
+      localStorage.setItem("lock_username_v2", "true");
+      return "khaled :)";
+    }
+    return saved;
+  });
+  const [profilePhoto, setProfilePhoto] = useState(() => {
+    const photo = localStorage.getItem("lock_profile_photo");
+    if (!photo || photo === "/icons/apple.png" || photo.includes("bf57026ee") || !localStorage.getItem("lock_has_cow_v1")) {
+      localStorage.setItem("lock_profile_photo", "/icons/khaled-avatar.png");
+      localStorage.setItem("lock_profile_bg", "transparent");
+      localStorage.setItem("lock_has_cow_v1", "true");
+      return "/icons/khaled-avatar.png";
+    }
+    return photo;
+  });
+  const [profileBg, setProfileBg] = useState(() => localStorage.getItem("lock_profile_bg") || "transparent");
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhoto, setEditPhoto] = useState("");
@@ -125,13 +142,15 @@ export default function LockScreen({ goNext, isLocked }) {
   }, []);
 
   const handleUnlock = useCallback(() => {
+    if (!isActive) return;
     enterFullscreen();
     setIsUnlocking(true);
     setTimeout(() => goNext(), 450);
-  }, [enterFullscreen, goNext]);
+  }, [enterFullscreen, goNext, isActive]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
+      if (!isActive) return;
       if (showEditModal) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "Enter" || e.key === " ") {
@@ -142,7 +161,7 @@ export default function LockScreen({ goNext, isLocked }) {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [showEditModal, handleUnlock]);
+  }, [showEditModal, handleUnlock, isActive]);
 
   // Clock drag handlers for depth mode
   const handleClockDragStart = useCallback((e) => {
@@ -180,6 +199,7 @@ export default function LockScreen({ goNext, isLocked }) {
 
   const handleSubmitPassword = useCallback((e) => {
     if (e) e.preventDefault();
+    if (!isActive) return;
     
     const requiredPassword = localStorage.getItem("lock_password") || "";
     if (passwordInput === requiredPassword) {
@@ -209,7 +229,7 @@ export default function LockScreen({ goNext, isLocked }) {
 
   const handleSave = (e) => {
     e.stopPropagation();
-    const name = editName.trim() || "User";
+    const name = editName.trim() || "khaled :)";
     setUsername(name);
     setProfilePhoto(editPhoto);
     localStorage.setItem("lock_username", name);
@@ -251,6 +271,9 @@ export default function LockScreen({ goNext, isLocked }) {
       className={`relative w-screen h-screen overflow-hidden text-white font-sans select-none
         transition-transform duration-[450ms] [transition-timing-function:cubic-bezier(0.25,1,0.5,1)] transform-gpu will-change-transform
         ${isUnlocking ? "-translate-y-full" : "translate-y-0"}`}
+      style={{
+        pointerEvents: isActive ? "auto" : "none",
+      }}
     >
       <style>{`
         @keyframes shake {

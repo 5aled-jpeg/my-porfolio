@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAppStore } from "../store/Appstore.js";
 import MacOSDock from "./ui/mac-os-dock";
-import GenieOverlay, { genieController } from "./ui/GenieOverlay";
+import GenieOverlay, { genieController, windowBoundsRegistry } from "./ui/GenieOverlay";
 import { Safari } from "../app/Safari";
 import Spotify from "../app/Spotify";
 import Settings from "../app/Settings";
@@ -11,22 +11,29 @@ import Finder from "../app/Finder";
 import Trash from "../app/Trash";
 import Mail from "../app/Mail";
 import CalendarApp from "../app/Calendar";
-import Calculator from "../app/Calculator";
 import Terminal from "../app/Terminal";
+import Maps from "../app/Maps";
+import Phone from "../app/Phone";
+import Contacts from "../app/Contacts";
+import MessagesApp from "../app/Messages";
 
 // Helper to create component on demand
 const renderAppComponent = (appId) => {
   switch (appId) {
     case "Finder":
       return <Finder />;
-    case "Calculator":
-      return <Calculator />;
-    case "Terminal":
-      return <Terminal />;
     case "Safari":
       return <Safari />;
+    case "Messages":
+      return <MessagesApp />;
     case "Mail":
       return <Mail />;
+    case "Maps":
+      return <Maps />;
+    case "Phone":
+      return <Phone />;
+    case "Contacts":
+      return <Contacts />;
     case "Notes":
       return <Blogs />;
     case "Photos":
@@ -35,6 +42,8 @@ const renderAppComponent = (appId) => {
       return <Spotify />;
     case "Calendar":
       return <CalendarApp />;
+    case "Terminal":
+      return <Terminal />;
     case "Settings":
       return <Settings />;
     case "Trash":
@@ -83,16 +92,16 @@ export default function Dock() {
       icon: 'https://cdn.21st.dev/assets/mirror/99/9963f31f43cd77b0c28981ba7bac04db749a5749019f554d1afb75225a3e9151.png' 
     },
     { 
-      id: 'calculator', 
-      name: 'Calculator', 
-      windowAppId: 'Calculator',
-      icon: 'https://cdn.21st.dev/assets/mirror/96/9639bd0ec3bae0b56bd8812f61c39d72123c6de272922e5bc7f3a24264112953.png' 
+      id: 'safari', 
+      name: 'Safari', 
+      windowAppId: 'Safari',
+      icon: 'https://cdn.21st.dev/assets/mirror/d5/d558230225bb0dd1897db6c7cf0d03b29506eef8078fe25313c48cd8f72d05ad.png' 
     },
     { 
-      id: 'terminal', 
-      name: 'Terminal', 
-      windowAppId: 'Terminal',
-      icon: 'https://cdn.21st.dev/assets/mirror/11/11d8587bae8852b8232d1f37e318c4b0fbbd2b0f2b61c71a79dbae327b4fa0c1.webp' 
+      id: 'messages', 
+      name: 'Messages', 
+      windowAppId: 'Messages',
+      icon: 'https://s3-new.macosicons.com/macosicons/parse/low_res_Messages_macOS_Golden_Gate_ow94O6GAvP-2934473a5d.png' 
     },
     { 
       id: 'mail', 
@@ -101,16 +110,28 @@ export default function Dock() {
       icon: 'https://cdn.21st.dev/assets/mirror/7b/7bb8671183d2a2bbb8a3858b1971cc5699ba0103673b011590d22f0fa309bb87.png' 
     },
     { 
+      id: 'maps', 
+      name: 'Maps', 
+      windowAppId: 'Maps',
+      icon: 'https://s3-new.macosicons.com/macosicons/parse/low_res_Maps_macOS_Golden_Gate_jOxvDFgSHw-b6ceac8cd4.png' 
+    },
+    { 
+      id: 'phone', 
+      name: 'Phone', 
+      windowAppId: 'Phone',
+      icon: 'https://s3-new.macosicons.com/macosicons/parse/low_res_Phone_macOS_Golden_Gate_NWKA493TFf-bffc4d8efc.png' 
+    },
+    { 
+      id: 'contacts', 
+      name: 'Contacts', 
+      windowAppId: 'Contacts',
+      icon: 'https://s3-new.macosicons.com/macosicons/parse/low_res_Contacts_macOS_Golden_Gate_oKWnz3UDu6-20ba74faaf.png' 
+    },
+    { 
       id: 'notes', 
       name: 'Notes', 
       windowAppId: 'Notes',
       icon: 'https://cdn.21st.dev/assets/mirror/cb/cbfa4e5db383bbb86683edc2f7d309e9fd7000d07833f6449837be51b77558fa.png' 
-    },
-    { 
-      id: 'safari', 
-      name: 'Safari', 
-      windowAppId: 'Safari',
-      icon: 'https://cdn.21st.dev/assets/mirror/d5/d558230225bb0dd1897db6c7cf0d03b29506eef8078fe25313c48cd8f72d05ad.png' 
     },
     { 
       id: 'photos', 
@@ -129,6 +150,12 @@ export default function Dock() {
       name: 'Calendar', 
       windowAppId: 'Calendar',
       icon: 'https://cdn.21st.dev/assets/mirror/e1/e1e93987488d4a904f4b7273213d36319c73d81ca9680b440c144f69af5a7f9a.png' 
+    },
+    { 
+      id: 'terminal', 
+      name: 'Terminal', 
+      windowAppId: 'Terminal',
+      icon: 'https://cdn.21st.dev/assets/mirror/11/11d8587bae8852b8232d1f37e318c4b0fbbd2b0f2b61c71a79dbae327b4fa0c1.webp' 
     },
     {
       id: 'settings',
@@ -174,9 +201,9 @@ export default function Dock() {
     };
 
     // Calculate window destination
-    const isCalc = winAppId === "Calculator";
-    const winW = isCalc ? 320 : Math.min(840, window.innerWidth * 0.65);
-    const winH = isCalc ? 440 : Math.min(580, window.innerHeight * 0.72);
+    const isCompact = winAppId === "Phone" || winAppId === "Contacts";
+    const winW = isCompact ? 720 : Math.min(840, window.innerWidth * 0.65);
+    const winH = isCompact ? 520 : Math.min(580, window.innerHeight * 0.72);
     let winRect = {
       x: Math.max(20, (window.innerWidth - winW) / 2),
       y: Math.max(40, (window.innerHeight - winH) / 2 - 20),
@@ -184,11 +211,27 @@ export default function Dock() {
       height: winH,
     };
 
-    const existingEl = document.querySelector(`.app-window-${winAppId.toLowerCase()}`);
-    if (existingEl) {
-      const b = existingEl.getBoundingClientRect();
-      if (b.width > 50 && b.height > 50) {
-        winRect = { x: b.left, y: b.top, width: b.width, height: b.height };
+    const savedBounds =
+      windowBoundsRegistry[app.id] ||
+      windowBoundsRegistry[winAppId.toLowerCase()];
+    if (savedBounds && savedBounds.width > 50 && savedBounds.height > 50) {
+      winRect = { ...savedBounds };
+    } else {
+      const existingEl = document.querySelector(`.app-window-${winAppId.toLowerCase()}`);
+      if (existingEl) {
+        if (existingEl.dataset.lastW && existingEl.dataset.lastH) {
+          winRect = {
+            x: parseFloat(existingEl.dataset.lastX),
+            y: parseFloat(existingEl.dataset.lastY),
+            width: parseFloat(existingEl.dataset.lastW),
+            height: parseFloat(existingEl.dataset.lastH),
+          };
+        } else {
+          const b = existingEl.getBoundingClientRect();
+          if (b.width > 50 && b.height > 50) {
+            winRect = { x: b.left, y: b.top, width: b.width, height: b.height };
+          }
+        }
       }
     }
 

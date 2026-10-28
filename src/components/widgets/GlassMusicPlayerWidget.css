@@ -1,0 +1,387 @@
+/* Glass Music Player Widget Styles - Atmospheric Luxury Glass DNA */
+
+.gmp-card {
+  position: relative;
+  width: 320px;
+  height: 412px;
+  border-radius: 28px;
+  overflow: hidden;
+  user-select: none;
+  background: rgba(10, 10, 16, 0.55);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 24px 50px -10px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gmp-card:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 28px 60px -8px rgba(0, 0, 0, 0.8);
+}
+
+/* Vinyl Mask (Disc Shape) */
+.gmp-card .mask {
+  z-index: 10;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  top: -150px;
+  left: 50%;
+  overflow: hidden;
+  transform: translate(-50%);
+  transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s ease,
+              box-shadow 0.3s ease;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.gmp-card .mask:hover {
+  transform: translate(-50%) scale(1.04);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+/* Zoomed vinyl state */
+.gmp-card.is-zoomed .mask {
+  z-index: 35;
+  border-radius: 0;
+  width: 320px;
+  height: 412px;
+  top: 0;
+  transition: top 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s ease;
+  box-shadow: none;
+}
+
+.gmp-card.is-zoomed .mask:hover {
+  transform: translate(-50%);
+}
+
+/* Spinning Disc */
+.gmp-card .spin {
+  transform-origin: 50% 50%;
+  will-change: transform;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Album Covers */
+.gmp-card .cover {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.gmp-card .cover-enter {
+  animation: 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.31s both gmp-cover-in;
+}
+
+.gmp-card .cover-exit {
+  animation: 0.32s cubic-bezier(0.22, 1, 0.36, 1) both gmp-cover-out;
+}
+
+@keyframes gmp-cover-in {
+  0% { opacity: 0; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes gmp-cover-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.92); }
+}
+
+/* Vinyl Center Hole */
+.gmp-card .hole {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  display: grid;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.4s ease;
+}
+
+.gmp-card.is-zoomed .hole {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.gmp-card .hole-inner {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.38);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Info Panel (Bottom) */
+.gmp-card .info {
+  z-index: 30;
+  pointer-events: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 24px 26px;
+  transition: filter 0.5s ease, opacity 0.5s ease;
+  display: flex;
+  position: relative;
+}
+
+.gmp-card .info > * {
+  pointer-events: auto;
+}
+
+.gmp-card.is-zoomed .info {
+  filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Track Info */
+.gmp-card .track-info {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.gmp-card .ti-layer {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  display: flex;
+}
+
+.gmp-card .ti-abs {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.gmp-card .ti-enter {
+  animation: 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.31s both gmp-ti-in;
+}
+
+.gmp-card .ti-exit {
+  animation: 0.28s cubic-bezier(0.22, 1, 0.36, 1) both gmp-ti-out;
+}
+
+@keyframes gmp-ti-in {
+  0% { opacity: 0; transform: translate(var(--dx)); }
+  100% { opacity: 1; transform: translate(0); }
+}
+
+@keyframes gmp-ti-out {
+  0% { opacity: 1; transform: translate(0); }
+  100% { opacity: 0; transform: translate(var(--dx)); }
+}
+
+/* Scales SVG Equalizer */
+.gmp-card .scales {
+  width: 26px;
+  height: 28px;
+  fill: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  display: block;
+  overflow: hidden;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.gmp-card .artist {
+  color: rgba(255, 255, 255, 0.55);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.gmp-card .track {
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  letter-spacing: -0.02em;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  overflow: hidden;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Progress Bar */
+.gmp-card .bar {
+  background: rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: height 0.15s ease;
+}
+
+.gmp-card .bar:hover {
+  height: 5px;
+}
+
+.gmp-card .bar-fill {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), #ffffff);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 80ms linear;
+  position: absolute;
+  inset: 0 auto 0 0;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+/* Time Display */
+.gmp-card .time {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 10px;
+  display: flex;
+}
+
+.gmp-card .time .current {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.gmp-card .time .sep {
+  color: rgba(255, 255, 255, 0.28);
+  margin: 0 6px;
+}
+
+.gmp-card .time .total {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Controls */
+.gmp-card .controls {
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  display: flex;
+}
+
+.gmp-card .ctrl {
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  transition: color 0.2s ease, opacity 0.15s ease, transform 0.15s ease;
+  display: grid;
+  position: relative;
+  outline: none;
+}
+
+.gmp-card .ctrl:hover {
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.gmp-card .ctrl:active {
+  opacity: 0.65;
+  transform: scale(0.95);
+}
+
+.gmp-card .ctrl svg {
+  display: block;
+}
+
+/* Center Play Button with Liquid Glass Highlight */
+.gmp-card .ctrl-play {
+  background: #ffffff;
+  width: 44px;
+  height: 44px;
+  color: #060608;
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.gmp-card .ctrl-play:hover {
+  opacity: 0.95;
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.gmp-card .ctrl-play:active {
+  transform: scale(0.94);
+  opacity: 0.8;
+}
+
+.gmp-card .ctrl-toggle.is-active,
+.gmp-card .ctrl-toggle.is-active:hover {
+  color: #38bdf8;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+}
+
+.gmp-card .ctrl-loop .loop-one {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+  color: #38bdf8;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  display: none;
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+}
+
+.gmp-card .ctrl-loop.mode-one .loop-one {
+  display: block;
+}

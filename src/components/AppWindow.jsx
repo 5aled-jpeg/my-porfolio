@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import { useAppStore } from "../store/Appstore.js";
 import { AnimatePresence, motion } from "framer-motion";
-import { genieController } from "./ui/GenieOverlay";
+import { toCanvas } from "html-to-image";
+import { genieController, setAppSnapshot, getAppSnapshot, windowBoundsRegistry } from "./ui/GenieOverlay";
 
 export default function AppWindow({ window: win }) {
   const close = useAppStore((s) => s.closeApp);
@@ -53,37 +54,111 @@ export default function AppWindow({ window: win }) {
   };
 
   const handleMinimize = () => {
-    const dockIconEl = document.querySelector(`[data-app-id="${win.appId.toLowerCase()}"], [title="${win.appId}"]`);
-    const rect = dockIconEl ? dockIconEl.getBoundingClientRect() : null;
-    const dockPos = rect ? {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    } : {
-      x: window.innerWidth / 2,
-      y: window.innerHeight - 35,
-    };
-
-    const winRect = {
-      x: windowState.x,
-      y: windowState.y,
-      width: windowState.width,
-      height: windowState.height,
-    };
-
     minimize(win.id);
-    genieController.play({
-      dir: "minimize",
-      appId: win.appId.toLowerCase(),
-      dock: dockPos,
-      win: winRect,
-      title: win.appId,
-      duration: 400,
-    });
   };
 
   const handleMaximize = () => {
     toggleMaximize(win.id);
   };
+
+  // Map window appId to corresponding Dock app ID
+  const getDockAppId = (id) => {
+    const lower = (id || "").toLowerCase();
+    if (lower === "textedit" || lower === "pdfviewer") return "finder";
+    if (lower === "facetime") return "phone";
+    if (lower === "spotify") return "music";
+    if (lower === "gallary" || lower === "gallery") return "photos";
+    if (lower === "blogs" || lower === "blog") return "notes";
+    return lower;
+  };
+
+  // Universal Genie minimize animation for ALL apps whenever win.minimized becomes true
+  const prevMinimizedRef = useRef(win.minimized);
+
+  useEffect(() => {
+    if (!prevMinimizedRef.current && win.minimized) {
+      const targetId = getDockAppId(win.appId);
+      const dockIconEl =
+        document.querySelector(`[data-app-id="${targetId}"]`) ||
+        document.querySelector(`[title="${win.appId}" i]`) ||
+        document.querySelector(`[aria-label="${win.appId}" i]`) ||
+        document.querySelector(`[data-app-id="finder"]`);
+      const rect = dockIconEl ? dockIconEl.getBoundingClientRect() : null;
+      const dockPos = rect
+        ? {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          }
+        : {
+            x: window.innerWidth / 2,
+            y: window.innerHeight - 35,
+          };
+
+      // Get the exact live screen coordinates before hiding
+      const el = rndRef.current?.getSelfElement();
+      const domRect = el ? el.getBoundingClientRect() : null;
+      const winRect = (domRect && domRect.width > 50 && domRect.height > 50)
+        ? {
+            x: domRect.left,
+            y: domRect.top,
+            width: domRect.width,
+            height: domRect.height,
+          }
+        : {
+            x: windowState.x,
+            y: windowState.y,
+            width: windowState.width,
+            height: windowState.height,
+          };
+
+      // Store in shared bounds registry so Dock restore knows the exact position
+      windowBoundsRegistry[win.appId.toLowerCase()] = { ...winRect };
+      windowBoundsRegistry[targetId] = { ...winRect };
+
+      // Also store on DOM elements for Dock restore
+      const outerEl = document.querySelector(`.app-window-${win.appId.toLowerCase()}`);
+      if (outerEl) {
+        outerEl.dataset.lastX = winRect.x.toString();
+        outerEl.dataset.lastY = winRect.y.toString();
+        outerEl.dataset.lastW = winRect.width.toString();
+        outerEl.dataset.lastH = winRect.height.toString();
+      }
+      if (el) {
+        el.dataset.lastX = winRect.x.toString();
+        el.dataset.lastY = winRect.y.toString();
+        el.dataset.lastW = winRect.width.toString();
+        el.dataset.lastH = winRect.height.toString();
+      }
+
+      genieController.play({
+        dir: "minimize",
+        appId: targetId,
+        dock: dockPos,
+        win: winRect,
+        title: win.appId,
+        texture: getAppSnapshot(win.appId),
+        duration: 420,
+      });
+    }
+    prevMinimizedRef.current = win.minimized;
+  }, [win.minimized, win.appId, windowState]);
+
+  // Pre-cache live app snapshot when window is idle/active
+  useEffect(() => {
+    if (!win.minimized && isVisible) {
+      const timer = setTimeout(() => {
+        const el =
+          rndRef.current?.getSelfElement() ||
+          document.querySelector(`.app-window-${win.appId.toLowerCase()}`);
+        if (el) {
+          toCanvas(el, { pixelRatio: 1, cacheBust: false })
+            .then((canvas) => setAppSnapshot(win.appId, canvas))
+            .catch(() => {});
+        }
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [win.appId, win.minimized, isVisible, windowState]);
 
   // Handle maximize/restore
   useEffect(() => {
